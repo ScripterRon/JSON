@@ -52,6 +52,13 @@ public class JSONParser {
     private static final Object emptyValue = new Object();
 
     /**
+     * All methods are static
+     */
+    private JSONParser() {
+        // Cannot instantiate
+    }
+
+    /**
      * Parse a formatted JSON string
      *
      * @param   reader                  Input reader
