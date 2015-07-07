@@ -1,0 +1,13 @@
+# Build Directories #
+target/
+package/
+
+# Package Files #
+*.jar
+*.zip
+*.tar
+*.gz
+
+# NetBeans IDE Files #
+nb*.xml
+
