@@ -17,6 +17,7 @@ package org.ScripterRon.JSON;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -24,13 +25,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * <p>JSON parser</p>
+ * <p>JSON parser
  *
  * <p>The JSON container returned by the parser will be either an array or an object
  * depending on the type of JSON string being parsed.  The default container factory
- * will create JSONArray and JSONObject containers.</p>
+ * will create JSONArray and JSONObject containers.
  *
- * <p>The following data types will be returned by the parser:</p>
+ * <p>The following data types will be returned by the parser:
  * <ul>
  * <li>Boolean - boolean value
  * <li>Long - integer numeric value
@@ -336,18 +337,23 @@ public class JSONParser {
         //
         String vstring = sb.toString();
         if (stringValue) {
-            for (int i=0; i<vstring.length(); i++) {
+            int i=0;
+            while (i < vstring.length()) {
                 int cp = vstring.codePointAt(i);
                 if (!Character.isValidCodePoint(cp))
                     throw new ParseException("Invalid Unicode character in string '"+
                                              vstring+"'", valueStart);
-                if (Character.isSupplementaryCodePoint(cp))
+                if (Character.isSupplementaryCodePoint(cp)) {
+                    i += 2;
+                } else {
                     i++;
+                }
             }
             value = vstring;
         } else if (vstring.length() == 0) {
             value = emptyValue;
         } else {
+            boolean tryBigNumber = false;
             try {
                 if (vstring.equalsIgnoreCase("null")) {
                     value = null;
@@ -358,10 +364,19 @@ public class JSONParser {
                 } else if (vstring.indexOf('.') >= 0) {
                     value = Double.valueOf(vstring);
                 } else {
+                    tryBigNumber = true;
                     value = Long.valueOf(vstring);
                 }
-            } catch (NumberFormatException exc) {
-                throw new ParseException("Invalid numeric value '"+vstring+"'", valueStart);
+            } catch (NumberFormatException exc1) {
+                if (tryBigNumber) {
+                    try {
+                        value = new BigInteger(vstring);
+                    } catch (NumberFormatException exc2) {
+                        throw new ParseException("Invalid numeric value '"+vstring+"'", valueStart);
+                    }
+                } else {
+                    throw new ParseException("Invalid numeric value '"+vstring+"'", valueStart);
+                }
             }
         }
         return value;
