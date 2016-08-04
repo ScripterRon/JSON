@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Ronald W Hoffman.
+ * Copyright 2015-2016 Ronald W Hoffman.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,11 @@ public class JSONValue {
         boolean firstElement = true;
         sb.append('[');
         for (Object obj : list) {
-            if (firstElement)
+            if (firstElement) {
                 firstElement = false;
-            else
+            } else {
                 sb.append(',');
+            }
             encodeValue(obj, sb);
         }
         sb.append(']');
@@ -82,12 +83,14 @@ public class JSONValue {
             Map.Entry<Object, Object> entry = it.next();
             Object key = entry.getKey();
             Object value = entry.getValue();
-            if (!(key instanceof String))
+            if (!(key instanceof String)) {
                 throw new UnsupportedEncodingException("JSON map key is not a string");
-            if (firstElement)
+            }
+            if (firstElement) {
                 firstElement = false;
-            else
+            } else {
                 sb.append(',');
+            }
             sb.append('\"').append((String)key).append("\":");
             encodeValue(value, sb);
         }
@@ -145,8 +148,9 @@ public class JSONValue {
      */
     private static void escapeString(String string, StringBuilder sb)
                                             throws CharConversionException {
-        if (string.length() == 0)
+        if (string.length() == 0) {
             return;
+        }
         //
         // Find the next special character in the string
         //
@@ -154,15 +158,17 @@ public class JSONValue {
         Matcher matcher = pattern.matcher(string);
         while (matcher.find(start)) {
             int pos = matcher.start();
-            if (pos > start)
+            if (pos > start) {
                 sb.append(string.substring(start, pos));
+            }
             start = pos + 1;
             //
             // Check for a valid Unicode codepoint
             //
             int ch = string.codePointAt(pos);
-            if (!Character.isValidCodePoint(ch))
+            if (!Character.isValidCodePoint(ch)) {
                 throw new CharConversionException("Invalid Unicode character in JSON string value");
+            }
             //
             // Process a supplementary codepoint
             //
@@ -211,9 +217,10 @@ public class JSONValue {
         //
         // Append the remainder of the string
         //
-        if (start == 0)
+        if (start == 0) {
             sb.append(string);
-        else if (start < string.length())
+        } else if (start < string.length()) {
             sb.append(string.substring(start));
+        }
     }
 }

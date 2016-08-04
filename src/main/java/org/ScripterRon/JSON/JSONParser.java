@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Ronald W Hoffman.
+ * Copyright 2015-2016 Ronald W Hoffman.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,10 +86,12 @@ public class JSONParser {
         int count;
         while (true) {
             count = reader.read(cbuf);
-            if (count < 0)
+            if (count < 0) {
                 break;
-            if (count > 0)
+            }
+            if (count > 0) {
                 sb.append(cbuf, 0, count);
+            }
         }
         return parse(sb.toString(), factory);
     }
@@ -116,11 +118,13 @@ public class JSONParser {
     public static Object parse(String string, JSONFactory factory) throws ParseException {
         Object container;
         Matcher matcher = pattern.matcher(string);
-        if (!matcher.find())
+        if (!matcher.find()) {
             throw new ParseException("Missing JSON container sequence", 0);
+        }
         int pos = matcher.start();
-        if (pos > 0 && string.substring(0, pos).trim().length() > 0)
+        if (pos > 0 && string.substring(0, pos).trim().length() > 0) {
             throw new ParseException("Extraneous characters before start of container sequence", 0);
+        }
         //
         // Process the first container
         //
@@ -155,13 +159,16 @@ public class JSONParser {
                                         throws ParseException {
         while (true) {
             Object value = parseValue(string, matcher, factory);
-            if (value != emptyValue)
+            if (value != emptyValue) {
                 container.add(value);
+            }
             char ch = string.charAt(matcher.start());
-            if (ch == '}')
+            if (ch == '}') {
                 throw new ParseException("Illegal array sequence termination", matcher.start());
-            if (ch == ']')
+            }
+            if (ch == ']') {
                 break;
+            }
         }
     }
 
@@ -184,20 +191,24 @@ public class JSONParser {
             //
             int keyPos = matcher.end();
             value = parseValue(string, matcher, null);
-            if (value == null || !(value instanceof String))
+            if (value == null || !(value instanceof String)) {
                 throw new ParseException("Invalid object sequence key", keyPos);
+            }
             String key = (String)value;
             //
             // Get the entry value
             //
             value = parseValue(string, matcher, factory);
-            if (value != emptyValue)
+            if (value != emptyValue) {
                 container.put(key, value);
+            }
             char ch = string.charAt(matcher.start());
-            if (ch == ']')
+            if (ch == ']') {
                 throw new ParseException("Illegal object sequence termination", matcher.start());
-            if (ch == '}')
+            }
+            if (ch == '}') {
                 break;
+            }
         }
     }
 
@@ -225,12 +236,14 @@ public class JSONParser {
             int pos = matcher.start();
             char ch = string.charAt(pos);
             if (inString) {
-                if (pos > start)
+                if (pos > start) {
                     sb.append(string.substring(start, pos));
+                }
                 switch (ch) {
                     case '\\':
-                        if (++pos >= string.length())
+                        if (++pos >= string.length()) {
                             throw new ParseException("End of data before end of string", pos);
+                        }
                         ch = string.charAt(pos);
                         switch (ch) {
                             case '"':
@@ -258,9 +271,10 @@ public class JSONParser {
                                 sb.append('/');
                                 break;
                             case 'u':
-                                if (pos+5 > string.length())
+                                if (pos+5 > string.length()) {
                                     throw new ParseException("Invalid Unicode escape sequence '"+
                                                              string.substring(pos)+"'", pos);
+                                }
                                 try {
                                     int cp = Integer.valueOf(string.substring(pos+1, pos+5), 16);
                                     sb.appendCodePoint(cp);
@@ -282,24 +296,29 @@ public class JSONParser {
                         sb.append(ch);
                 }
             } else {
-                if (pos > start)
+                if (pos > start) {
                     sb.append(string.substring(start, pos).trim());
+                }
                 switch (ch) {
                     case '{':
-                        if (sb.length() > 0 || value != null || stringValue)
+                        if (sb.length() > 0 || value != null || stringValue) {
                             throw new ParseException("Illegal object sequence start", pos);
-                        if (factory == null)
+                        }
+                        if (factory == null) {
                             throw new ParseException("Invalid object key", pos);
+                        }
                         Map<String, Object> map = factory.createObjectContainer();
                         parseObject(map, string, matcher, factory);
                         value = map;
                         pos = matcher.start();
                         break;
                     case '[':
-                        if (sb.length() > 0 || value != null || stringValue)
+                        if (sb.length() > 0 || value != null || stringValue) {
                             throw new ParseException("Illegal array sequence start", pos);
-                        if (factory == null)
+                        }
+                        if (factory == null) {
                             throw new ParseException("Invalid object key", pos);
+                        }
                         List<Object> list = factory.createArrayContainer();
                         parseArray(list, string, matcher, factory);
                         value = list;
@@ -312,26 +331,30 @@ public class JSONParser {
                         foundValue = true;
                         break;
                     case '\"':
-                        if (sb.length() > 0 || value != null || stringValue)
+                        if (sb.length() > 0 || value != null || stringValue) {
                             throw new ParseException("Illegal string start", pos);
+                        }
                         inString = true;
                         break;
                     default:
-                        if (value != null || stringValue)
+                        if (value != null || stringValue) {
                             throw new ParseException("Extraneous characters after end of data value", pos);
+                        }
                         sb.append(ch);
                 }
             }
             start = pos + 1;
         }
-        if (!foundValue)
+        if (!foundValue) {
             throw new ParseException("End of data parsing JSON value '"+
                                      string.substring(valueStart)+"'", valueStart);
+        }
         //
         // Stop now if the data value is a container sequence
         //
-        if (value != null)
+        if (value != null) {
             return value;
+        }
         //
         // Create the data object from the JSON string
         //
@@ -340,9 +363,10 @@ public class JSONParser {
             int i=0;
             while (i < vstring.length()) {
                 int cp = vstring.codePointAt(i);
-                if (!Character.isValidCodePoint(cp))
+                if (!Character.isValidCodePoint(cp)) {
                     throw new ParseException("Invalid Unicode character in string '"+
                                              vstring+"'", valueStart);
+                }
                 if (Character.isSupplementaryCodePoint(cp)) {
                     i += 2;
                 } else {
