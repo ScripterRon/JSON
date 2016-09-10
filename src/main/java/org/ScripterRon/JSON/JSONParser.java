@@ -195,17 +195,26 @@ public class JSONParser {
             //
             int keyPos = matcher.end();
             value = parseValue(string, matcher, null);
-            if (value == null || !(value instanceof String)) {
+            String key;
+            if (value == emptyValue) {
+                key = null;
+            } else if (value instanceof String) {
+                key = (String)value;
+            } else {
                 throw new ParseException("Invalid object sequence key", keyPos);
             }
-            String key = (String)value;
             //
             // Get the entry value
             //
-            value = parseValue(string, matcher, factory);
-            if (value != emptyValue) {
-                container.put(key, value);
+            if (key != null) {
+                value = parseValue(string, matcher, factory);
+                if (value != emptyValue) {
+                    container.put(key, value);
+                }
             }
+            //
+            // Check for end of object sequence
+            //
             char ch = string.charAt(matcher.start());
             if (ch == ']') {
                 throw new ParseException("Illegal object sequence termination", matcher.start());
