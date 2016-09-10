@@ -117,30 +117,34 @@ public class JSONParser {
      */
     public static Object parse(String string, JSONFactory factory) throws ParseException {
         Object container;
-        Matcher matcher = pattern.matcher(string);
-        if (!matcher.find()) {
-            throw new ParseException("Missing JSON container sequence", 0);
-        }
-        int pos = matcher.start();
-        if (pos > 0 && string.substring(0, pos).trim().length() > 0) {
-            throw new ParseException("Extraneous characters before start of container sequence", 0);
-        }
-        //
-        // Process the first container
-        //
-        switch (string.charAt(pos)) {
-            case '[':
-                List<Object> list = factory.createArrayContainer();
-                parseArray(list, string, matcher, factory);
-                container = list;
-                break;
-            case '{':
-                Map<String, Object> map = factory.createObjectContainer();
-                parseObject(map, string, matcher, factory);
-                container = map;
-                break;
-            default:
-                throw new ParseException("Extraneous characters before start of container sequence", pos);
+        try {
+            Matcher matcher = pattern.matcher(string);
+            if (!matcher.find()) {
+                throw new ParseException("Missing JSON container sequence", 0);
+            }
+            int pos = matcher.start();
+            if (pos > 0 && string.substring(0, pos).trim().length() > 0) {
+                throw new ParseException("Extraneous characters before start of container sequence", 0);
+            }
+            //
+            // Process the first container
+            //
+            switch (string.charAt(pos)) {
+                case '[':
+                    List<Object> list = factory.createArrayContainer();
+                    parseArray(list, string, matcher, factory);
+                    container = list;
+                    break;
+                case '{':
+                    Map<String, Object> map = factory.createObjectContainer();
+                    parseObject(map, string, matcher, factory);
+                    container = map;
+                    break;
+                default:
+                    throw new ParseException("Extraneous characters before start of container sequence", pos);
+            }
+        } catch (ParseException exc) {
+            throw new ParseException(exc.getMessage() + "\n" + string, exc.getErrorOffset());
         }
         return container;
     }

@@ -1,6 +1,9 @@
 JSON
 ====
 
+Version 1.0.1
+  - Return JSON string on parse exception
+
 Version 1.0.0
   - Initial release
 
